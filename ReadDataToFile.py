@@ -67,7 +67,7 @@ def get_finacedata(string):
     data_all = pd.concat([data,basic_data],axis=1)
     #cols = list(data_all) 
     #data_all = data_all.loc[:, cols].loc[::-1, :]
-    file_name = './stockdata\\' + string[:-3] + '.csv'
+    file_name = os.getcwd() + 'stockdata\\' + string[:-3] + '.csv'
     if os.path.exists(file_name):
         os.remove(file_name)
     data_all.to_csv(file_name)
