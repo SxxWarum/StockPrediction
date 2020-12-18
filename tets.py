@@ -8,13 +8,14 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout
 
 f_open = open('stockdata\\test.csv')
 ori_data = pd.read_csv(f_open)
+ori_data_np = np.array(ori_data)
 
 # print(ori_data)
 
 x, y = [], []
 for i in range(len(ori_data) - 3):
-    x.append(ori_data[i:i + 3, 0])
-    y.append(ori_data[i + 2, 1])
+    x.append(ori_data_np[i:i + 3, :1])
+    y.append(ori_data_np[i + 2, 1:])
 train_x = np.array(x)
 train_y = np.array(y)
 print(train_x.shape)
