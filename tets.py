@@ -21,10 +21,10 @@ data_x = np.array(x).astype(np.float32)
 data_y = np.array(y).astype(np.float32)
 train_begin_index = 0
 train_end_index = math.floor(len(ori_data) * 0.8)
-train_x = np.array(data_x[0:train_end_index])
-train_y = np.array(data_y[0:train_end_index])
-val_x = np.array(data_x[train_end_index + 1:])
-val_y = np.array(data_y[train_end_index + 1:])
+train_x = np.array(data_x[0:train_end_index]) / 20
+train_y = np.array(data_y[0:train_end_index]) /20
+val_x = np.array(data_x[train_end_index + 1:]) /20
+val_y = np.array(data_y[train_end_index + 1:]) /20
 
 print(train_x.shape)
 print(train_y.shape)
@@ -33,13 +33,16 @@ print(val_y.shape)
 
 
 model = Sequential()
-model.add(LSTM(units=128, return_sequences=False,input_shape=(train_x.shape[1], train_x.shape[2])) )
+model.add(LSTM(units=512, return_sequences=False, input_shape=(train_x.shape[1], train_x.shape[2])) )
+model.add(Dense(128, activation='relu'))
 model.add(Dense(64, activation='relu'))
 model.add(Dense(32, activation='relu'))
-model.add(Dense(1, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
 
-model.compile(optimizer=optimizers.Adam(lr=0.001), loss='mse')
+model.compile(optimizer=optimizers.Adam(lr=0.0001), loss='mse')
 # model.summary()
 
-history = model.fit(train_x, train_y, validation_data=(val_x, val_y), epochs=20, batch_size=32, verbose=False)
-
+history = model.fit(train_x, train_y, validation_split=0.15, epochs=128, batch_size=32, verbose=True)
+pred_y = model.predict(val_x)
+print(pred_y)
+print(val_y)
