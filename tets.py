@@ -4,9 +4,18 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, models, optimizers
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.layers import LSTM, Dense, Dropout, BatchNormalization
 import math
 from sklearn.preprocessing import MinMaxScaler
+
+
+def scheduler(epoch, lr):
+    if epoch < 256:
+        return lr
+    else:
+        return lr*tf.math.exp(-1*epoch/512)
+
+
 f_open = open('stockdata\\test.csv')
 
 # 获取原始数据
@@ -65,8 +74,9 @@ model = Sequential()
 model.add(
     LSTM(units=512,
          return_sequences=False,
-         kernel_regularizer=tf.keras.regularizers.l2(0.001),
+         # kernel_regularizer=tf.keras.regularizers.l2(0.0001),
          input_shape=(train_x.shape[1], train_x.shape[2])))
+model.add(Dense(256, activation='relu'))
 model.add(Dense(128, activation='tanh'))
 model.add(Dense(64, activation='tanh'))
 model.add(Dense(32, activation='tanh'))
@@ -74,14 +84,17 @@ model.add(Dense(1, activation='tanh'))
 
 model.compile(optimizer=optimizers.Adam(lr=0.0001), loss='mse')
 # model.summary()
-
+callback = tf.keras.callbacks.LearningRateScheduler(scheduler)
 history = model.fit(train_x,
                     train_y,
                     validation_split=0.15,
-                    epochs=128,
+                    epochs=512,
                     batch_size=32,
+                    callbacks=[callback],
                     verbose=True)
 pred_y_normalized = model.predict(val_x)
 pred_y_ori = scalery.inverse_transform(pred_y_normalized)
 pred_data_check = pd.DataFrame(pred_y_ori)
 pred_data_check.to_csv('pred_y_check.csv')
+print(pred_y_ori[-10:])
+print(ori_data[-10:])
