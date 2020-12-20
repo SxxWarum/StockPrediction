@@ -8,31 +8,52 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout
 import math
 from sklearn.preprocessing import MinMaxScaler
 f_open = open('stockdata\\test.csv')
+
+# 获取原始数据
 ori_data = pd.read_csv(f_open)
+# print(ori_data)
+# 转换成numpy格式
 ori_data_np = np.array(ori_data)
 
-# print(ori_data)
+print(ori_data_np.shape)
 
-x, y = [], []
-for i in range(len(ori_data) - 3):
-    x.append(ori_data_np[i:i + 3, :1])
-    y.append(ori_data_np[i + 2, 1:])
-data_x = np.array(x).astype(np.float32)
-data_y = np.array(y).astype(np.float32)
-
-# 缩放数据
+# scalerx是第一列的缩放参数, scalery是第二列的缩放参数
+# [:, np.newaxis]功能是将np从行转换到列
 scalerx = MinMaxScaler()
 scalery = MinMaxScaler()
+scalerx.fit(ori_data_np[:, 0][:, np.newaxis])
+scalery.fit(ori_data_np[:, 1][:, np.newaxis])
+# ori_data_np_normalized是ori_data_np正则化以后的数据
+ori_data_np_normalized = np.concatenate(
+    (scalerx.fit_transform(ori_data_np[:, 0][:, np.newaxis]),
+     scalery.fit_transform(ori_data_np[:, 1][:, np.newaxis])),
+    axis=1)
+# ori_data_np_check是检查数据, 与ori_data对比, 测试无误
+ori_data_np_check = np.concatenate(
+    (scalerx.inverse_transform(ori_data_np_normalized[:, 0][:, np.newaxis]),
+     scalery.inverse_transform(ori_data_np_normalized[:, 1][:, np.newaxis])),
+    axis=1)
+# 测试数据写进data_check.csv文件, 与test.csv文件对比
+ori_normalized_data_check = pd.DataFrame(ori_data_np_check)
+ori_normalized_data_check.to_csv('data_check.csv')
 
-print(scalerx.fit(data_x))
-print(scalery.fit(data_y))
+x, y = [], []
+# 3行作为一个序列, 第3行的Y作为目标值, 重新生成序列数据
+# data_x的shape: [397, 3, 1]
+# data_y的shape: [397, 1]
+for i in range(len(ori_data) - 3):
+    x.append(ori_data_np_normalized[i:i + 3, :1])
+    y.append(ori_data_np_normalized[i + 2, 1:])
+data_x = np.array(x).astype(np.float32)
+data_y = np.array(y).astype(np.float32)
+print(data_x.shape)
+print(data_y.shape)
 
-
-
+# 缩放数据
 train_end_index = math.floor(len(ori_data) * 0.8)
-train_x = np.array(data_x[0:train_end_index]) / 20
-train_y = np.array(data_y[0:train_end_index]) / 20
-val_x = np.array(data_x[train_end_index + 1:]) / 20
+train_x = np.array(data_x[0:train_end_index])
+train_y = np.array(data_y[0:train_end_index])
+val_x = np.array(data_x[train_end_index + 1:])
 val_y = np.array(data_y[train_end_index + 1:])
 
 print(train_x.shape)
@@ -60,6 +81,7 @@ history = model.fit(train_x,
                     epochs=128,
                     batch_size=32,
                     verbose=True)
-pred_y = model.predict(val_x)
-print(pred_y * 20)
-print(val_y)
+pred_y_normalized = model.predict(val_x)
+pred_y_ori = scalery.inverse_transform(pred_y_normalized)
+pred_data_check = pd.DataFrame(pred_y_ori)
+pred_data_check.to_csv('pred_y_check.csv')
