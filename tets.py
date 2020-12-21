@@ -13,7 +13,7 @@ def scheduler(epoch, lr):
     if epoch < 256:
         return lr
     else:
-        return lr*tf.math.exp(-1*epoch/512)
+        return lr * tf.math.exp(-1 * epoch / 512)
 
 
 f_open = open('stockdata\\test.csv')
@@ -51,6 +51,9 @@ x, y = [], []
 # data_x的shape: [397, 3, 1]
 # data_y的shape: [397, 1]
 for i in range(len(ori_data) - 3):
+    # 对应版本0.2.1.1 增加此行, 数据增加一个奇偶性判断
+    temp = (ori_data_np_normalized[i:i + 3, 0]).extend(
+        (ori_data_np[i:i + 3, :1].sum() % 2).reshape(1, 1, 1))
     x.append(ori_data_np_normalized[i:i + 3, :1])
     y.append(ori_data_np_normalized[i + 2, 1:])
 data_x = np.array(x).astype(np.float32)
@@ -72,10 +75,11 @@ print(val_y.shape)
 
 model = Sequential()
 model.add(
-    LSTM(units=512,
-         return_sequences=False,
-         # kernel_regularizer=tf.keras.regularizers.l2(0.0001),
-         input_shape=(train_x.shape[1], train_x.shape[2])))
+    LSTM(
+        units=512,
+        return_sequences=False,
+        # kernel_regularizer=tf.keras.regularizers.l2(0.0001),
+        input_shape=(train_x.shape[1], train_x.shape[2])))
 model.add(Dense(256, activation='relu'))
 model.add(Dense(128, activation='tanh'))
 model.add(Dense(64, activation='tanh'))
