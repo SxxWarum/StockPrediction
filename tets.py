@@ -85,8 +85,8 @@ model.add(
         input_shape=(train_x.shape[1], train_x.shape[2])))
 model.add(Dense(256, activation='relu'))
 model.add(Dense(128, activation='relu'))
-model.add(Dense(64, activation='tanh'))
-model.add(Dense(32, activation='tanh'))
+model.add(Dense(64, activation='relu'))
+model.add(Dense(32, activation='relu'))
 model.add(Dense(1, activation='tanh'))
 
 model.compile(optimizer=optimizers.Adam(lr=0.001), loss='mae')
