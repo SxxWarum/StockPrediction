@@ -52,16 +52,17 @@ x, y = [], []
 # data_y的shape: [397, 1]
 for i in range(len(ori_data) - 3):
     # 对应版本0.2.1.1 增加此行, 数据增加一个奇偶性判断
-    temp = (ori_data_np_normalized[i:i + 3, 0]).extend(
-        (ori_data_np[i:i + 3, :1].sum() % 2).reshape(1, 1, 1))
-    x.append(ori_data_np_normalized[i:i + 3, :1])
+    a = (ori_data_np_normalized[i:i + 3, 0]).reshape(3, 1)
+    b = (ori_data_np[i:i + 3, :1].sum() % 2).reshape(1, 1)
+
+    temp = np.vstack((a, b))
+    x.append(temp)
     y.append(ori_data_np_normalized[i + 2, 1:])
 data_x = np.array(x).astype(np.float32)
 data_y = np.array(y).astype(np.float32)
-print(data_x.shape)
+print(data_x)
 print(data_y.shape)
 
-# 缩放数据
 train_end_index = math.floor(len(ori_data) * 0.8)
 train_x = np.array(data_x[0:train_end_index])
 train_y = np.array(data_y[0:train_end_index])
