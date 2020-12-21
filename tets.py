@@ -10,10 +10,10 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 def scheduler(epoch, lr):
-    if epoch < 256:
+    if epoch < 10:
         return lr
     else:
-        return lr * tf.math.exp(-1 * epoch / 512)
+        return lr * tf.math.exp(-5 * epoch / 512)
 
 
 f_open = open('stockdata\\test.csv')
@@ -51,19 +51,19 @@ x, y = [], []
 # data_x的shape: [397, 3, 1]
 # data_y的shape: [397, 1]
 for i in range(len(ori_data) - 3):
-    # 对应版本0.2.1.1 增加此行, 数据增加一个奇偶性判断
+    # 对应版本0.2.1.1 修改此行, 数据增加一个奇偶性判断
     a = (ori_data_np_normalized[i:i + 3, 0]).reshape(3, 1)
     b = (ori_data_np[i:i + 3, :1].sum() % 2).reshape(1, 1)
-
     temp = np.vstack((a, b))
     x.append(temp)
+    # 修改后版本号为 test_0.2.2.0
     y.append(ori_data_np_normalized[i + 2, 1:])
 data_x = np.array(x).astype(np.float32)
 data_y = np.array(y).astype(np.float32)
 print(data_x)
 print(data_y.shape)
 
-train_end_index = math.floor(len(ori_data) * 0.8)
+train_end_index = math.floor(len(ori_data) * 0.95)
 train_x = np.array(data_x[0:train_end_index])
 train_y = np.array(data_y[0:train_end_index])
 val_x = np.array(data_x[train_end_index + 1:])
@@ -82,12 +82,12 @@ model.add(
         # kernel_regularizer=tf.keras.regularizers.l2(0.0001),
         input_shape=(train_x.shape[1], train_x.shape[2])))
 model.add(Dense(256, activation='relu'))
-model.add(Dense(128, activation='tanh'))
+model.add(Dense(128, activation='relu'))
 model.add(Dense(64, activation='tanh'))
 model.add(Dense(32, activation='tanh'))
 model.add(Dense(1, activation='tanh'))
 
-model.compile(optimizer=optimizers.Adam(lr=0.0001), loss='mse')
+model.compile(optimizer=optimizers.Adam(lr=0.001), loss='mae')
 # model.summary()
 callback = tf.keras.callbacks.LearningRateScheduler(scheduler)
 history = model.fit(train_x,
