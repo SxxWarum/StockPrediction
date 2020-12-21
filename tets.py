@@ -10,6 +10,8 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 def scheduler(epoch, lr):
+    # test_0.2.2.1版本中 重启了lr递减,如下: 效果很好,结果接近真实值
+    # test_0.2.2.0版本是epoch<256时,返回lr,相当于lr不变
     if epoch < 10:
         return lr
     else:
